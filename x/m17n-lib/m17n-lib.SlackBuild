@@ -1,0 +1,189 @@
+#!/bin/sh
+
+# Copyright 2008, 2009  Eric Hameleers, Eindhoven, NL
+# Copyright 2008, 2009, 2010  Patrick J. Volkerding, Sebeka, MN  USA
+# All rights reserved.
+#
+#   Permission to use, copy, modify, and distribute this software for
+#   any purpose with or without fee is hereby granted, provided that
+#   the above copyright notice and this permission notice appear in all
+#   copies.
+#
+#   THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
+#   WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+#   MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+#   IN NO EVENT SHALL THE AUTHORS AND COPYRIGHT HOLDERS AND THEIR
+#   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+#   SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+#   LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+#   USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+#   ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+#   OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+#   OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+#   SUCH DAMAGE.
+# -----------------------------------------------------------------------------
+#
+# Slackware SlackBuild script 
+# ===========================
+# By:         Eric Hameleers <alien@slackware.com>
+# For:        m17n-lib
+# Descr:      multilingualization of many aspects of applications
+# URL:        http://m17n.org/
+#
+# -----------------------------------------------------------------------------
+
+
+PKGNAM=m17n-lib
+SHORTNAM=m17n
+VERSION=${VERSION:-1.6.1}
+DBVERSION=${DBVERSION:-1.6.1}
+# Won't build && are not maintained for current version
+#DOCVERSION=${DOCVERSION:-1.5.5}
+BUILD=${BUILD:-1}
+
+# Automatically determine the architecture we're building on:
+if [ -z "$ARCH" ]; then
+  case "$( uname -m )" in
+    i?86) export ARCH=i486 ;;
+    arm*) export ARCH=arm ;;
+    # Unless $ARCH is already set, use uname -m for all other archs:
+       *) export ARCH=$( uname -m ) ;;
+  esac
+fi
+
+NUMJOBS=${NUMJOBS:-" -j7 "}
+
+DOCS="ABOUT-NLS AUTHORS COPYING ChangeLog INSTALL NEWS README TODO"
+DOCS_DB="ABOUT-NLS AUTHORS COPYING ChangeLog NEWS README"
+DOCS_DOC="AUTHORS COPYING ChangeLog INSTALL NEWS README"
+
+CWD=$(pwd)
+TMP=${TMP:-/tmp}
+PKG=$TMP/package-$PKGNAM
+
+SOURCE[0]="$CWD/${PKGNAM}-${VERSION}.tar.xz"
+SOURCE[1]="$CWD/${SHORTNAM}-db-${DBVERSION}.tar.xz"
+#SOURCE[2]="$CWD/${SHORTNAM}-docs-${DOCVERSION}.tar.xz"
+
+if [ "$ARCH" = "i486" ]; then
+  SLKCFLAGS="-O2 -march=i486 -mtune=i686"
+  LIBDIRSUFFIX=""
+elif [ "$ARCH" = "s390" ]; then
+  SLKCFLAGS="-O2"
+  LIBDIRSUFFIX=""
+elif [ "$ARCH" = "x86_64" ]; then
+  SLKCFLAGS="-O2 -fPIC"
+  LIBDIRSUFFIX="64"
+elif [ "$ARCH" = "arm" ]; then
+  SLKCFLAGS="-O2 -march=armv4 -mtune=xscale"
+  LIBDIRSUFFIX=""
+elif [ "$ARCH" = "armel" ]; then
+  SLKCFLAGS="-O2 -march=armv4t"
+  LIBDIRSUFFIX=""
+fi
+
+rm -rf $PKG
+mkdir -p $TMP/build-${PKGNAM} $PKG
+
+cd $TMP/build-${PKGNAM}
+for (( i = 0; i < ${#SOURCE[*]}; i++ )) ; do
+  tar xvf ${SOURCE[$i]} || exit 1
+done
+chown -R root:root *
+chmod -R u+w,go+r-w,a-s *
+
+cd ${PKGNAM}-${VERSION}
+# Add the missing internal-flt.h file:
+[ ! -r src/internal-flt.h ] && cp $CWD/internal-flt.h src/
+
+echo Building ...
+CXXFLAGS="$SLKCFLAGS" \
+CFLAGS="$SLKCFLAGS" \
+./configure \
+  --prefix=/usr \
+  --libdir=/usr/lib${LIBDIRSUFFIX} \
+  --localstatedir=/var \
+  --sysconfdir=/etc \
+  --mandir=/usr/man \
+  --without-gui \
+  --disable-static \
+  --program-prefix= \
+  --program-suffix= \
+  --build=$ARCH-slackware-linux
+# If you get errors here, uninstall the present m17n-lib package first:
+make $NUMJOBS || make || exit 1
+make DESTDIR=$PKG install || exit 1
+cd ..
+
+# Compile and install the m17n database:
+echo "Building the m17n database..."
+cd ${SHORTNAM}-db-${DBVERSION}
+CXXFLAGS="$SLKCFLAGS" \
+CFLAGS="$SLKCFLAGS" \
+./configure \
+  --prefix=/usr \
+  --libdir=/usr/lib${LIBDIRSUFFIX} \
+  --localstatedir=/var \
+  --sysconfdir=/etc \
+  --program-prefix= \
+  --program-suffix= \
+  --build=$ARCH-slackware-linux
+make $NUMJOBS || make || exit 1
+make DESTDIR=$PKG install || exit 1
+cd ..
+
+## Compile and install the m17n user documentation:
+#echo "Building the m17n user docs..."
+#cd ${SHORTNAM}-docs-${DOCVERSION}
+#CXXFLAGS="$SLKCFLAGS" \
+#CFLAGS="$SLKCFLAGS" \
+#./configure \
+#  --prefix=/usr \
+#  --libdir=/usr/lib${LIBDIRSUFFIX} \
+#  --localstatedir=/var \
+#  --sysconfdir=/etc \
+#  --mandir=/usr/man \
+#  --program-prefix= \
+#  --program-suffix= \
+#  --build=$ARCH-slackware-linux
+#make $NUMJOBS || make || exit 1
+#make DESTDIR=$PKG install || exit 1
+#cd ..
+
+# Add package documentation:
+mkdir -p $PKG/usr/doc/$PKGNAM-$VERSION/{db,docs}
+cd ${PKGNAM}-${VERSION}
+cp -a $DOCS $PKG/usr/doc/$PKGNAM-$VERSION
+cd ../${SHORTNAM}-db-${DBVERSION}
+cp -a $DOCS_DB $PKG/usr/doc/$PKGNAM-$VERSION/db
+cd ../${SHORTNAM}-docs-${DOCVERSION}
+cp -a $DOCS_DOC $PKG/usr/doc/$PKGNAM-$VERSION/docs
+cd ..
+find $PKG/usr/doc -type f -exec chmod 644 {} \;
+
+# Compress the man page(s):
+( cd $PKG/usr/man/man3
+  for file in * ; do
+    mv $file $(basename $file m17n)
+  done
+)
+find $PKG/usr/man -type f -name "*.?" -exec gzip -9f {} \;
+for i in $(find $PKG/usr/man -type l -name "*.?") ; do
+  ln -s $( readlink $i ).gz $i.gz ; rm $i
+done
+
+# Strip binaries:
+find $PKG | xargs file | grep -e "executable" -e "shared object" \
+  | grep ELF | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null
+
+# Add a package description:
+mkdir -p $PKG/install
+cat $CWD/slack-desc > $PKG/install/slack-desc
+if [ -f $CWD/doinst.sh ]; then
+  cat $CWD/doinst.sh >> $PKG/install/doinst.sh
+fi
+
+# Build the package:
+cd $PKG
+/sbin/makepkg -l y -c n $TMP/${PKGNAM}-${VERSION}-${ARCH}-${BUILD}.txz
+

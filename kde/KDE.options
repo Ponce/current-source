@@ -1,0 +1,51 @@
+# Set default version/arch/build.  You can override these settings
+# in the SlackBuild scripts for each package (koffice, for example,
+# usually has a different version number), or by setting your own
+# environment variables.
+
+[ -z $VERSION ] && export VERSION=4.5.5
+[ -z $BUILD ] && export BUILD=1
+
+# Automatically determine the architecture we're building on:
+if [ -z "$ARCH" ]; then
+  case "$( uname -m )" in
+    i?86) export ARCH=i486 ;;
+    arm*) export ARCH=arm ;;
+    # Unless $ARCH is already set, use uname -m for all other archs:
+       *) export ARCH=$( uname -m ) ;;
+  esac
+fi
+
+# Use this as CFLAGS and CXXFLAGS:
+if [ -z "$SLKCFLAGS" ]; then
+  if [ "$ARCH" = "i486" ]; then
+    export SLKCFLAGS="-O2 -march=i486 -mtune=i686"
+    export LIBDIRSUFFIX=""
+  elif [ "$ARCH" = "s390" ]; then
+    export SLKCFLAGS="-O2"
+    export LIBDIRSUFFIX=""
+  elif [ "$ARCH" = "x86_64" ]; then
+    export SLKCFLAGS="-O2 -fPIC"
+    export LIBDIRSUFFIX="64"
+  elif [ "$ARCH" = "arm" ]; then
+    export SLKCFLAGS="-O2 -march=armv4 -mtune=xscale"
+    export LIBDIRSUFFIX=""
+  elif [ "$ARCH" = "armel" ]; then
+    export SLKCFLAGS="-O2 -march=armv4t"
+    export LIBDIRSUFFIX=""
+  else
+    export SLKCFLAGS="-O2"
+    export LIBDIRSUFFIX=""
+  fi
+fi
+
+# Use this to set the number of parallel make jobs:
+if [ -z "$NUMJOBS" ]; then
+  export NUMJOBS="-j7"
+fi
+
+# Additional cmake flags that are spanned across the KDE modules
+# Do not use "final build" unless we build an actual release.
+#export KDE_OPT_ARGS=" -DKDE4_ENABLE_FINAL=\"ON\"  -DSITE=\"slackware.com\" "
+export KDE_OPT_ARGS=" -DSITE=\"slackware.com\" "
+
