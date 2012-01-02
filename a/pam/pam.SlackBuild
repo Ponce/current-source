@@ -115,6 +115,7 @@ CXXFLAGS="$SLKCFLAGS" \
   --enable-read-both-confs \
   --disable-prelude \
   --disable-selinux \
+  --disable-nis \
   --build=$ARCH-slackware-linux || exit 1
 
 make $NUMJOBS || make || exit 1
