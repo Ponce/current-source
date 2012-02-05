@@ -2,7 +2,7 @@
 
 # Slackware build script for ca-certificates
 
-# Copyright 2009  Robby Workman  Northport, AL, USA
+# Copyright 2009,2011  Robby Workman  Northport, AL, USA
 # All rights reserved.
 #
 # Redistribution and use of this script, with or without modification, is
@@ -23,7 +23,7 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 PRGNAM=ca-certificates
-VERSION=${VERSION:-20090814}
+VERSION=${VERSION:-20111211}
 ARCH=noarch
 BUILD=${BUILD:-1}
 
@@ -44,9 +44,9 @@ find . \
  \( -perm 666 -o -perm 664 -o -perm 600 -o -perm 444 -o -perm 440 -o -perm 400 \) \
  -exec chmod 644 {} \;
 
-zcat $CWD/cacerts-$VERSION-remove_debconf.diff.gz | patch -p1 || exit 1
-zcat $CWD/cacerts-$VERSION-fixup_DESTDIR.diff.gz | patch -p1 || exit 1
-zcat $CWD/cacerts-$VERSION-fixup_update-ca-certificates.diff.gz | patch -p1 || exit 1
+zcat $CWD/patches/remove_debconf.diff.gz | patch -p1 || exit 1
+zcat $CWD/patches/fixup_DESTDIR.diff.gz | patch -p1 || exit 1
+zcat $CWD/patches/fixup_update-ca-certificates.diff.gz | patch -p1 || exit 1
 
 make || exit 1
 make install DESTDIR=$PKG || exit 1

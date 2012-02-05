@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Copyright 2008, 2009, 2010, 2011  Patrick J. Volkerding, Sebeka, MN, USA
+# Copyright 2008, 2009, 2010, 2011, 2012  Patrick J. Volkerding, Sebeka, MN, USA
 # All rights reserved.
 #
 # Redistribution and use of this script, with or without modification, is
@@ -169,6 +169,7 @@ done
 # Add symlinks for the pkgconfig files:
 ( cd $PKG/usr/lib${LIBDIRSUFFIX}/pkgconfig
   ln -s seamonkey-js.pc js.pc
+  ln -s seamonkey-libxul.pc libxul.pc
   ln -s seamonkey-nspr.pc nspr.pc
   ln -s seamonkey-nss.pc nss.pc
   ln -s seamonkey-plugin.pc plugin.pc

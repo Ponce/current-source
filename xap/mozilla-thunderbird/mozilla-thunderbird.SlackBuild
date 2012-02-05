@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Copyright 2008, 2009, 2010, 2011  Patrick J. Volkerding, Sebeka, Minnesota, USA
+# Copyright 2008, 2009, 2010, 2011, 2012  Patrick J. Volkerding, Sebeka, Minnesota, USA
 # All rights reserved.
 #
 # Redistribution and use of this script, with or without modification, is
@@ -26,9 +26,22 @@
 TARBALLVER=$(basename $(ls thunderbird-*.tar.bz2 | cut -d - -f 2 | rev | cut -f 3- -d . | rev) .source)
 # Strip the end from beta versions:
 VERSION=$(echo $TARBALLVER | cut -f 1 -d b)
-
-COMM=${COMM:-beta}
 BUILD=${BUILD:-1}
+
+CWD=$(pwd)
+TMP=${TMP:-/tmp}
+PKG=$TMP/package-mozilla-thunderbird
+
+# Figure out if this is a beta, or a release:
+if echo $TARBALLVER | grep -q b ; then # we think it is a beta
+  if bzgrep -q comm-beta/ $CWD/thunderbird-$TARBALLVER.source.tar.bz2 ; then
+    MOZVERS=${MOZVERS:-beta}
+  else # blindly assume it is a release
+    MOZVERS=${MOZVERS:-release}
+  fi
+else # release, no "b" in the tarball version:
+  MOZVERS=${MOZVERS:-release}
+fi
 
 # Automatically determine the architecture we're building on:
 if [ -z "$ARCH" ]; then
@@ -39,8 +52,6 @@ if [ -z "$ARCH" ]; then
        *) export ARCH=$( uname -m ) ;;
   esac
 fi
-
-MOZVERS=${MOZVERS:-release}
 
 NUMJOBS=${NUMJOBS:-" -j7 "}
 
@@ -61,10 +72,6 @@ elif [ "$ARCH" = "armel" ]; then
   SLKCFLAGS="-O2 -march=armv4t"
   LIBDIRSUFFIX=""
 fi
-
-CWD=$(pwd)
-TMP=${TMP:-/tmp}
-PKG=$TMP/package-mozilla-thunderbird
 
 rm -rf $PKG
 mkdir -p $TMP $PKG/usr/lib${LIBDIRSUFFIX}

@@ -2,7 +2,7 @@
 
 # Copyright 2000 BSDi, Inc. Concord, CA, USA
 # Copyright 2001, 2002 Slackware Linux, Inc.  Concord, CA, USA
-# Copyright 2005, 2006, 2007, 2008, 2009, 2010, 2011  Patrick J. Volkerding, Sebeka, MN, USA
+# Copyright 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012  Patrick J. Volkerding, Sebeka, MN, USA
 # All rights reserved.
 #
 # Redistribution and use of this script, with or without modification, is
@@ -27,8 +27,8 @@
 CWD=$(pwd)
 TMP=${TMP:-/tmp}
 
-VERSION=${VERSION:-$(echo openssl-*.tar.?z* | rev | cut -f 3- -d . | cut -f 1 -d - | rev)}
-BUILD=${BUILD:-3}
+VERSION=${VERSION:-$(echo openssl-*.tar.gz | rev | cut -f 3- -d . | cut -f 1 -d - | rev)}
+BUILD=${BUILD:-1}
 
 # Automatically determine the architecture we're building on:
 if [ -z "$ARCH" ]; then
@@ -52,7 +52,7 @@ export LC_ALL=C
 
 cd $TMP
 rm -rf $PKG1 $PKG2 openssl-$VERSION
-tar xvf $CWD/openssl-$VERSION.tar.?z* || exit 1
+tar xvf $CWD/openssl-$VERSION.tar.gz || exit 1
 cd openssl-$VERSION
 
 # Use .so.0, not .so.0.9.8:
@@ -103,7 +103,7 @@ fi
  no-sse2 \
  shared
 
-make depend || exit 1
+make $NUMJOBS depend || make depend || exit 1
 
 make $NUMJOBS || make || exit 1
 
