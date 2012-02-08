@@ -24,7 +24,7 @@
 
 VERSION=${VERSION:-2.14.1}
 CHECKOUT=${CHECKOUT:-""}
-BUILD=${BUILD:-3}
+BUILD=${BUILD:-4}
 
 ## Included in glibc now:
 ## glibc-libidn version
@@ -172,8 +172,10 @@ apply_patches() {
   # Avoid the Intel optimized asm routines for now because they break
   # the flash player.  We'll phase this in when it's safer to do so.
   zcat $CWD/glibc.disable.broken.optimized.memcpy.diff.gz | patch -p1 --verbose || exit 1
-  # Upstream fixes to arert Firefox crashes:
+  # Upstream fixes to avert Firefox crashes:
   zcat $CWD/glibc-2.14.1-fixes-1.patch.gz | patch -p1 --verbose || exit 1
+  # Fix an integer overflow in tzfile:
+  zcat $CWD/glibc.CVE-2009-5029.diff.gz | patch -p1 --verbose || exit 1
   # Update the timezone information.
   ( cd timezone
     tar xzf $CWD/tzdata?????.tar.gz
